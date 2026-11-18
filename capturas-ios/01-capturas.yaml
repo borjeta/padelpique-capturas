@@ -22,6 +22,7 @@ appId: com.borjeta.padelpique
     file: sub/pasada.yaml
     env:
       IDIOMA: es
+      GRUPO: "Los del jueves"
 
 # --- Inglés (cambio de idioma dentro de la app) ---
 - runFlow: sub/idioma-en.yaml
@@ -29,3 +30,4 @@ appId: com.borjeta.padelpique
     file: sub/pasada.yaml
     env:
       IDIOMA: en
+      GRUPO: "Thursday crew"

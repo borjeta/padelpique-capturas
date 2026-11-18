@@ -1,4 +1,5 @@
-# Una pasada de capturas en un idioma. Variable de entrada: IDIOMA (es | en), prefijo de los nombres de archivo.
+# Una pasada de capturas en un idioma. Variables de entrada: IDIOMA (es | en), prefijo de los nombres de archivo,
+# y GRUPO, nombre (solo ASCII) del grupo que se crea para la captura de invitar.
 # Empieza en la pantalla de inicio o ya dentro del grupo demo, y termina en la pantalla de inicio.
 # NO guarda ningún partido: "Nuevo partido" se rellena solo para la captura y se abandona.
 appId: com.borjeta.padelpique
@@ -44,16 +45,31 @@ appId: com.borjeta.padelpique
 - runFlow: pausa.yaml
 - takeScreenshot: ${IDIOMA}-05-mejores-parejas
 
-# 04 · Invitar al grupo (código grande y botón de compartir).
+# 04 · Invitar al grupo (código grande y botón de compartir). Se crea un grupo propio (código aleatorio) en lugar de abrir
+# la invitación del demo: así el código del grupo del revisor de Apple no sale en una captura pública de la ficha.
+# Reiniciar la app es más robusto que buscar el botón de volver.
+- launchApp
+- runFlow: esperar-inicio.yaml
 - tapOn:
-    id: "header-invite"
+    id: "create-group"
+- extendedWaitUntil:
+    visible:
+      id: "group-name-input"
+    timeout: 20000
+- tapOn:
+    id: "group-name-input"
+- inputText: "${GRUPO}"
+- tapOn:
+    id: "nickname-input"
+- inputText: "Carlos"
+# Enter en el apodo envía el formulario (returnKeyType "done" + onSubmitEditing).
+- pressKey: Enter
 - extendedWaitUntil:
     visible:
       id: "invite-code"
-    timeout: 20000
+    timeout: 30000
 - runFlow: pausa.yaml
 - takeScreenshot: ${IDIOMA}-04-invitar
-# Reiniciar la app es más robusto que buscar el botón de volver.
 - launchApp
 - runFlow: esperar-inicio.yaml
 - tapOn:

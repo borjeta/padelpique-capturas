@@ -85,6 +85,14 @@ jobs:
           # Las capturas se guardan en out/; la depuración (puede contener el código) va aparte, a debug/.
           maestro --device "$UDID" test -e DEMO_CODE="$DEMO_CODE" --debug-output ../debug --flatten-debug-output "../capturas-ios/$FLOW"
 
+      # Maestro no deja los PNG en el directorio de trabajo, sino junto a su salida de depuración: se buscan por nombre.
+      - name: Reunir las capturas
+        if: always()
+        run: |
+          mkdir -p out
+          find . -type f \( -name 'es-0*.png' -o -name 'en-0*.png' \) -not -path './out/*' -print -exec cp {} out/ \;
+          ls -l out
+
       - name: Comprobar tamaños (deben ser 1320x2868)
         if: always()
         run: |

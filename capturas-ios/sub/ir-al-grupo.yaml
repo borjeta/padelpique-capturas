@@ -1,0 +1,19 @@
+# Entra en el grupo demo desde la lista de inicio (o confirma que ya estamos dentro). El toque en la fila a veces no navega
+# si la lista aún se está pintando: se repite solo mientras la fila siga visible.
+appId: com.borjeta.padelpique
+---
+- retry:
+    maxRetries: 3
+    commands:
+      - runFlow:
+          when:
+            visible:
+              id: "group-dd000000-0000-4000-8000-000000000000"
+          commands:
+            - tapOn:
+                id: "group-dd000000-0000-4000-8000-000000000000"
+      - extendedWaitUntil:
+          visible:
+            id: "tab-standings"
+          timeout: 12000
+- runFlow: pausa.yaml

@@ -2,21 +2,12 @@
 # y GRUPO, nombre (solo ASCII) del grupo que se crea para la captura de invitar.
 # Empieza en la pantalla de inicio o ya dentro del grupo demo, y termina en la pantalla de inicio.
 # NO guarda ningún partido: "Nuevo partido" se rellena solo para la captura y se abandona.
+# Los pasos «tocar y esperar» van dentro de `retry` y repiten el toque solo si el botón sigue visible: en el simulador un
+# toque puede registrarse sin navegar (visto en «Crear grupo»).
 appId: com.borjeta.padelpique
 ---
-# Entrar en el grupo demo si estamos en el inicio (la lista de grupos).
-- runFlow:
-    when:
-      visible:
-        id: "group-dd000000-0000-4000-8000-000000000000"
-    commands:
-      - tapOn:
-          id: "group-dd000000-0000-4000-8000-000000000000"
-- extendedWaitUntil:
-    visible:
-      id: "tab-standings"
-    timeout: 30000
-- runFlow: pausa.yaml
+# Entrar en el grupo demo (desde el inicio, o ya estamos dentro).
+- runFlow: ir-al-grupo.yaml
 
 # 03 · Historial de partidos (pestaña por defecto).
 # Cada partido del historial tiene un texto accesible "<fecha>. Ganan <nombres>. Resultado: …" (EN: "… win. Score: …").
@@ -27,12 +18,15 @@ appId: com.borjeta.padelpique
 - takeScreenshot: ${IDIOMA}-03-partidos
 
 # 01 · Clasificación (con HIDE_ADS está desbloqueada).
-- tapOn:
-    id: "tab-standings"
-- extendedWaitUntil:
-    visible:
-      id: "standing-dd000000-0000-4000-8000-000000000001"
-    timeout: 30000
+- retry:
+    maxRetries: 3
+    commands:
+      - tapOn:
+          id: "tab-standings"
+      - extendedWaitUntil:
+          visible:
+            id: "standing-dd000000-0000-4000-8000-000000000001"
+          timeout: 12000
 - runFlow: pausa.yaml
 - takeScreenshot: ${IDIOMA}-01-clasificacion
 
@@ -51,12 +45,20 @@ appId: com.borjeta.padelpique
 # Reiniciar la app es más robusto que buscar el botón de volver.
 - launchApp
 - runFlow: esperar-inicio.yaml
-- tapOn:
-    id: "create-group"
-- extendedWaitUntil:
-    visible:
-      id: "group-name-input"
-    timeout: 20000
+- retry:
+    maxRetries: 3
+    commands:
+      - runFlow:
+          when:
+            visible:
+              id: "create-group"
+          commands:
+            - tapOn:
+                id: "create-group"
+      - extendedWaitUntil:
+          visible:
+            id: "group-name-input"
+          timeout: 10000
 - retry:
     maxRetries: 3
     commands:
@@ -83,36 +85,55 @@ appId: com.borjeta.padelpique
 - takeScreenshot: ${IDIOMA}-04-invitar
 - launchApp
 - runFlow: esperar-inicio.yaml
-- tapOn:
-    id: "group-dd000000-0000-4000-8000-000000000000"
+- runFlow: ir-al-grupo.yaml
 - extendedWaitUntil:
     visible:
       id: "new-match"
     timeout: 30000
 
 # 02 · Nuevo partido: Carlos + Lucía contra Miguel + Sara, al mejor de 3: 6-4, 3-6 y súper tie-break 10-8.
-- tapOn:
-    id: "new-match"
-- extendedWaitUntil:
-    visible:
-      id: "slot-1"
-    timeout: 20000
-- tapOn:
-    id: "slot-1"
-- tapOn:
-    id: "player-picker-dd000000-0000-4000-8000-000000000001"
-- tapOn:
-    id: "slot-2"
-- tapOn:
-    id: "player-picker-dd000000-0000-4000-8000-000000000002"
-- tapOn:
-    id: "slot-3"
-- tapOn:
-    id: "player-picker-dd000000-0000-4000-8000-000000000003"
-- tapOn:
-    id: "slot-4"
-- tapOn:
-    id: "player-picker-dd000000-0000-4000-8000-000000000004"
+- retry:
+    maxRetries: 3
+    commands:
+      - runFlow:
+          when:
+            visible:
+              id: "new-match"
+          commands:
+            - tapOn:
+                id: "new-match"
+      - extendedWaitUntil:
+          visible:
+            id: "slot-1"
+          timeout: 10000
+- retry:
+    maxRetries: 3
+    commands:
+      - tapOn:
+          id: "slot-1"
+      - tapOn:
+          id: "player-picker-dd000000-0000-4000-8000-000000000001"
+- retry:
+    maxRetries: 3
+    commands:
+      - tapOn:
+          id: "slot-2"
+      - tapOn:
+          id: "player-picker-dd000000-0000-4000-8000-000000000002"
+- retry:
+    maxRetries: 3
+    commands:
+      - tapOn:
+          id: "slot-3"
+      - tapOn:
+          id: "player-picker-dd000000-0000-4000-8000-000000000003"
+- retry:
+    maxRetries: 3
+    commands:
+      - tapOn:
+          id: "slot-4"
+      - tapOn:
+          id: "player-picker-dd000000-0000-4000-8000-000000000004"
 - runFlow: pausa.yaml
 - takeScreenshot: ${IDIOMA}-02a-nuevo-partido-parejas
 - tapOn:

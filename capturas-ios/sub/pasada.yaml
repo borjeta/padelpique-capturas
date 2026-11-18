@@ -37,11 +37,12 @@ appId: com.borjeta.padelpique
 - takeScreenshot: ${IDIOMA}-01-clasificacion
 
 # 05 · Mejores parejas (la clasificación desplazada).
+# centerElement deja el título «Mejores parejas» en mitad de la pantalla, con las parejas debajo (sin scroll de más).
 - scrollUntilVisible:
     element: ".*(Mejores parejas|Best pairs).*"
     direction: DOWN
     timeout: 20000
-- scroll
+    centerElement: true
 - runFlow: pausa.yaml
 - takeScreenshot: ${IDIOMA}-05-mejores-parejas
 

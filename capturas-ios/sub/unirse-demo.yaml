@@ -5,9 +5,16 @@ appId: com.borjeta.padelpique
 ---
 - tapOn:
     id: "join-group"
-- tapOn:
-    id: "code-input"
-- inputText: "${DEMO_CODE}"
+# La escritura en el simulador a veces pierde caracteres (llegó a quedar solo la «P»): se reintenta borrando el campo
+# y se comprueba que el texto quedó completo antes de enviarlo.
+- retry:
+    maxRetries: 3
+    commands:
+      - tapOn:
+          id: "code-input"
+      - eraseText: 12
+      - inputText: "${DEMO_CODE}"
+      - assertVisible: "${DEMO_CODE}"
 # Enter envía el código (returnKeyType "go"); si el teclado lo impidiera, se pulsa el botón.
 - pressKey: Enter
 - tapOn:

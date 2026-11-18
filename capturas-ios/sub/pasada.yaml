@@ -56,12 +56,22 @@ appId: com.borjeta.padelpique
     visible:
       id: "group-name-input"
     timeout: 20000
-- tapOn:
-    id: "group-name-input"
-- inputText: "${GRUPO}"
-- tapOn:
-    id: "nickname-input"
-- inputText: "Carlos"
+- retry:
+    maxRetries: 3
+    commands:
+      - tapOn:
+          id: "group-name-input"
+      - eraseText: 40
+      - inputText: "${GRUPO}"
+      - assertVisible: "${GRUPO}"
+- retry:
+    maxRetries: 3
+    commands:
+      - tapOn:
+          id: "nickname-input"
+      - eraseText: 30
+      - inputText: "Carlos"
+      - assertVisible: "Carlos"
 # Enter en el apodo envía el formulario (returnKeyType "done" + onSubmitEditing).
 - pressKey: Enter
 - extendedWaitUntil:

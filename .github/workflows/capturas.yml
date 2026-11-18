@@ -35,6 +35,8 @@ jobs:
       APP_URL: ${{ inputs.app_url || secrets.APP_URL }}
       DEMO_CODE: ${{ secrets.DEMO_CODE }}
       FLOW: ${{ inputs.flow }}
+      # El driver de XCTest de Maestro a veces tarda en arrancar en los runners macOS (por defecto, poco margen).
+      MAESTRO_DRIVER_STARTUP_TIMEOUT: '240000'
     steps:
       - uses: actions/checkout@v4
 
@@ -76,6 +78,16 @@ jobs:
           APP=$(find app -maxdepth 2 -name '*.app' | head -n 1)
           echo "Instalando $APP"
           xcrun simctl install "$UDID" "$APP"
+
+      - name: Calentar el driver de Maestro (con reintentos)
+        run: |
+          mkdir -p out debug
+          cd out
+          for i in 1 2 3; do
+            maestro --device "$UDID" test ../capturas-ios/sub/calentar.yaml && exit 0
+            echo "::warning::El driver no estaba listo (intento $i de 3)"; sleep 20
+          done
+          echo "::error::El driver de Maestro no arrancó tras 3 intentos"; exit 1
 
       - name: Ejecutar el flujo de Maestro
         run: |

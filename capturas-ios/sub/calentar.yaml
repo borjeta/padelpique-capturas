@@ -1,0 +1,7 @@
+# Calienta el driver de Maestro en el simulador (arranca el XCTest runner) SIN abrir la app ni escribir nada.
+# En los runners macOS el driver a veces tarda más de lo normal en estar listo; el workflow reintenta este flujo
+# antes de lanzar el real, que NO se puede reintentar a medias (reclama a «Carlos» en el demo).
+appId: com.borjeta.padelpique
+---
+- waitForAnimationToEnd:
+    timeout: 1000

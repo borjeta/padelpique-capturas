@@ -1,0 +1,9 @@
+# Pausa de unos segundos (datos, animaciones): Maestro no tiene "sleep", así que se busca un texto que no
+# existe con "optional" y se sigue cuando se agota la espera.
+appId: com.borjeta.padelpique
+---
+- tapOn:
+    text: "ZZZ_NO_EXISTE_ZZZ"
+    optional: true
+- waitForAnimationToEnd:
+    timeout: 3000

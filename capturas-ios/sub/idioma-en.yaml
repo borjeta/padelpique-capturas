@@ -1,0 +1,17 @@
+# Cambia el idioma de la app a inglés (Ajustes → Idioma → English) y reinicia la app en la pantalla de inicio.
+# La preferencia se guarda en el dispositivo y no escribe nada en el servidor.
+appId: com.borjeta.padelpique
+---
+- launchApp
+- runFlow: esperar-inicio.yaml
+- tapOn:
+    id: "open-settings"
+- extendedWaitUntil:
+    visible:
+      id: "language-en"
+    timeout: 20000
+- tapOn:
+    id: "language-en"
+- runFlow: pausa.yaml
+- launchApp
+- runFlow: esperar-inicio.yaml

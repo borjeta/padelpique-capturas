@@ -1,0 +1,10 @@
+# Cierra avisos del sistema que pudieran salir al arrancar (seguimiento ATT, consentimiento de anuncios).
+# En el build `simulator` no deberían aparecer (EXPO_PUBLIC_HIDE_ADS=1 no inicia anuncios): es solo una red de seguridad.
+appId: com.borjeta.padelpique
+---
+- tapOn:
+    text: "(Pedir a la app que no rastree|Ask App Not to Track)"
+    optional: true
+- tapOn:
+    text: "(Continue|Continuar|Consent|Consentir)"
+    optional: true

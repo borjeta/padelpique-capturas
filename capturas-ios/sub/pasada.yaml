@@ -1,0 +1,152 @@
+# Una pasada de capturas en un idioma. Variable de entrada: IDIOMA (es | en), prefijo de los nombres de archivo.
+# Empieza en la pantalla de inicio o ya dentro del grupo demo, y termina en la pantalla de inicio.
+# NO guarda ningún partido: "Nuevo partido" se rellena solo para la captura y se abandona.
+appId: com.borjeta.padelpique
+---
+# Entrar en el grupo demo si estamos en el inicio (la lista de grupos).
+- runFlow:
+    when:
+      visible:
+        id: "group-dd000000-0000-4000-8000-000000000000"
+    commands:
+      - tapOn:
+          id: "group-dd000000-0000-4000-8000-000000000000"
+- extendedWaitUntil:
+    visible:
+      id: "tab-standings"
+    timeout: 30000
+- runFlow: pausa.yaml
+
+# 03 · Historial de partidos (pestaña por defecto).
+# Cada partido del historial tiene un texto accesible "<fecha>. Ganan <nombres>. Resultado: …" (EN: "… win. Score: …").
+- extendedWaitUntil:
+    visible: ".*(Ganan| win).*"
+    timeout: 30000
+- runFlow: pausa.yaml
+- takeScreenshot: ${IDIOMA}-03-partidos
+
+# 01 · Clasificación (con HIDE_ADS está desbloqueada).
+- tapOn:
+    id: "tab-standings"
+- extendedWaitUntil:
+    visible:
+      id: "standing-dd000000-0000-4000-8000-000000000001"
+    timeout: 30000
+- runFlow: pausa.yaml
+- takeScreenshot: ${IDIOMA}-01-clasificacion
+
+# 05 · Mejores parejas (la clasificación desplazada).
+- scrollUntilVisible:
+    element: ".*(Mejores parejas|Best pairs).*"
+    direction: DOWN
+    timeout: 20000
+- scroll
+- runFlow: pausa.yaml
+- takeScreenshot: ${IDIOMA}-05-mejores-parejas
+
+# 04 · Invitar al grupo (código grande y botón de compartir).
+- tapOn:
+    id: "header-invite"
+- extendedWaitUntil:
+    visible:
+      id: "invite-code"
+    timeout: 20000
+- runFlow: pausa.yaml
+- takeScreenshot: ${IDIOMA}-04-invitar
+# Reiniciar la app es más robusto que buscar el botón de volver.
+- launchApp
+- runFlow: esperar-inicio.yaml
+- tapOn:
+    id: "group-dd000000-0000-4000-8000-000000000000"
+- extendedWaitUntil:
+    visible:
+      id: "new-match"
+    timeout: 30000
+
+# 02 · Nuevo partido: Carlos + Lucía contra Miguel + Sara, al mejor de 3: 6-4, 3-6 y súper tie-break 10-8.
+- tapOn:
+    id: "new-match"
+- extendedWaitUntil:
+    visible:
+      id: "slot-1"
+    timeout: 20000
+- tapOn:
+    id: "slot-1"
+- tapOn:
+    id: "player-picker-dd000000-0000-4000-8000-000000000001"
+- tapOn:
+    id: "slot-2"
+- tapOn:
+    id: "player-picker-dd000000-0000-4000-8000-000000000002"
+- tapOn:
+    id: "slot-3"
+- tapOn:
+    id: "player-picker-dd000000-0000-4000-8000-000000000003"
+- tapOn:
+    id: "slot-4"
+- tapOn:
+    id: "player-picker-dd000000-0000-4000-8000-000000000004"
+- runFlow: pausa.yaml
+- takeScreenshot: ${IDIOMA}-02a-nuevo-partido-parejas
+- tapOn:
+    id: "format-bo3"
+# Set 1: 6-4
+- scrollUntilVisible:
+    element:
+      id: "set1-t1-inc"
+    direction: DOWN
+    timeout: 20000
+- repeat:
+    times: 6
+    commands:
+      - tapOn:
+          id: "set1-t1-inc"
+- repeat:
+    times: 4
+    commands:
+      - tapOn:
+          id: "set1-t2-inc"
+# Set 2: 3-6
+- scrollUntilVisible:
+    element:
+      id: "set2-t1-inc"
+    direction: DOWN
+    timeout: 20000
+- repeat:
+    times: 3
+    commands:
+      - tapOn:
+          id: "set2-t1-inc"
+- repeat:
+    times: 6
+    commands:
+      - tapOn:
+          id: "set2-t2-inc"
+# Set 3: súper tie-break 10-8
+- scrollUntilVisible:
+    element:
+      id: "super-tiebreak"
+    direction: DOWN
+    timeout: 20000
+- tapOn:
+    id: "super-tiebreak"
+- repeat:
+    times: 10
+    commands:
+      - tapOn:
+          id: "set3-t1-inc"
+- repeat:
+    times: 8
+    commands:
+      - tapOn:
+          id: "set3-t2-inc"
+- scrollUntilVisible:
+    element:
+      id: "save-match"
+    direction: DOWN
+    timeout: 20000
+- runFlow: pausa.yaml
+- takeScreenshot: ${IDIOMA}-02-nuevo-partido
+# NO se pulsa "Guardar partido": se abandona reiniciando la app.
+- launchApp
+- runFlow: esperar-inicio.yaml

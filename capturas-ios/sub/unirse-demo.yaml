@@ -1,0 +1,31 @@
+# Se une al grupo demo reclamando al invitado «Carlos» (id fijo del script grupo-demo.sql).
+# El código de invitación llega por la variable DEMO_CODE (`maestro test -e DEMO_CODE=…`; en el workflow, secreto DEMO_CODE)
+# para no dejarlo escrito en un repositorio público. Es la ÚNICA escritura en producción de todo el flujo.
+appId: com.borjeta.padelpique
+---
+- tapOn:
+    id: "join-group"
+- tapOn:
+    id: "code-input"
+- inputText: "${DEMO_CODE}"
+# Enter envía el código (returnKeyType "go"); si el teclado lo impidiera, se pulsa el botón.
+- pressKey: Enter
+- tapOn:
+    id: "check-code"
+    optional: true
+- extendedWaitUntil:
+    visible:
+      id: "claim-dd000000-0000-4000-8000-000000000001"
+    timeout: 30000
+- runFlow: pausa.yaml
+# Sexta captura opcional ("¿Eres alguno de estos?"), solo en español.
+- takeScreenshot: es-06-reclamar-invitado
+- tapOn:
+    id: "claim-dd000000-0000-4000-8000-000000000001"
+- tapOn:
+    id: "join-submit"
+- extendedWaitUntil:
+    visible:
+      id: "tab-standings"
+    timeout: 30000
+- runFlow: pausa.yaml

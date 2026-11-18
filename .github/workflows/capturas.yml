@@ -1,0 +1,112 @@
+# Capturas de la App Store de PadelPique en un simulador de iPhone 6,9" (1320x2868) dentro de un runner macOS.
+#
+# 1) Compila la app para simulador en EAS (no gasta minutos de Actions):
+#      cd apps/mobile && npx eas-cli build --platform ios --profile simulator --non-interactive
+#    y copia la URL del .tar.gz (eas build:view <id> --json → artifacts.buildUrl).
+# 2) Lanza este workflow a mano pasando esa URL (o guárdala como secreto APP_URL para no dejarla en los logs).
+#
+# IMPORTANTE: los runners macOS cuentan ×10 en repositorios PRIVADOS. Ejecútalo desde un repositorio PÚBLICO
+# que solo contenga `capturas-ios/` y este workflow (sin código de la app). Ver capturas-ios/README.md.
+#
+# Resultado: artefacto "capturas-ios" con los PNG (es-… y en-…) y, si algo falla, los datos de depuración de Maestro.
+
+name: Capturas iOS
+
+on:
+  workflow_dispatch:
+    inputs:
+      app_url:
+        description: 'URL del .tar.gz del build de simulador de EAS (vacío = secreto APP_URL)'
+        type: string
+        required: false
+      flow:
+        description: 'Flujo de Maestro dentro de capturas-ios/'
+        type: string
+        default: '01-capturas.yaml'
+
+permissions:
+  contents: read
+
+jobs:
+  capturas:
+    runs-on: macos-latest
+    timeout-minutes: 45
+    env:
+      APP_URL: ${{ inputs.app_url || secrets.APP_URL }}
+      DEMO_CODE: ${{ secrets.DEMO_CODE }}
+      FLOW: ${{ inputs.flow }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Instalar Maestro
+        run: |
+          curl -Ls "https://get.maestro.mobile.dev" | bash
+          echo "$HOME/.maestro/bin" >> "$GITHUB_PATH"
+
+      - name: Crear y arrancar el simulador (iPhone Pro Max, español)
+        run: |
+          RUNTIME=$(xcrun simctl list runtimes -j | jq -r '[.runtimes[] | select(.platform=="iOS" and .isAvailable)] | last | .identifier')
+          DEVTYPE=$(xcrun simctl list devicetypes -j | jq -r '[.devicetypes[] | select(.name=="iPhone 17 Pro Max" or .name=="iPhone 16 Pro Max")] | last | .identifier')
+          echo "Runtime: $RUNTIME · Dispositivo: $DEVTYPE"
+          UDID=$(xcrun simctl create capturas "$DEVTYPE" "$RUNTIME")
+          echo "UDID=$UDID" >> "$GITHUB_ENV"
+          xcrun simctl boot "$UDID"
+          xcrun simctl bootstatus "$UDID" -b
+          # Idioma y región en español; hay que reiniciar para que se apliquen. La pasada en inglés cambia el idioma dentro de la app.
+          xcrun simctl spawn "$UDID" defaults write NSGlobalDomain AppleLanguages -array es
+          xcrun simctl spawn "$UDID" defaults write NSGlobalDomain AppleLocale -string es_ES
+          xcrun simctl shutdown "$UDID"
+          xcrun simctl boot "$UDID"
+          xcrun simctl bootstatus "$UDID" -b
+          # Barra de estado limpia, como en las capturas de Apple.
+          xcrun simctl status_bar "$UDID" override --time 9:41 --batteryState charged --batteryLevel 100 \
+            --cellularMode active --cellularBars 4 --wifiBars 3 --operatorName ""
+
+      - name: Instalar la app
+        run: |
+          test -n "$APP_URL" || { echo "::error::Falta app_url (o el secreto APP_URL)"; exit 1; }
+          mkdir -p app
+          curl -fL "$APP_URL" -o app.tar.gz
+          tar -xzf app.tar.gz -C app
+          APP=$(find app -maxdepth 2 -name '*.app' | head -n 1)
+          echo "Instalando $APP"
+          xcrun simctl install "$UDID" "$APP"
+
+      - name: Ejecutar el flujo de Maestro
+        run: |
+          test -n "$DEMO_CODE" || { echo "::error::Falta el secreto DEMO_CODE (código de invitación del grupo demo)"; exit 1; }
+          mkdir -p out debug
+          cd out
+          # Las capturas se guardan en out/; la depuración (puede contener el código) va aparte, a debug/.
+          maestro --device "$UDID" test -e DEMO_CODE="$DEMO_CODE" --debug-output ../debug --flatten-debug-output "../capturas-ios/$FLOW"
+
+      - name: Comprobar tamaños (deben ser 1320x2868)
+        if: always()
+        run: |
+          cd out
+          for f in *.png; do
+            [ -e "$f" ] || { echo "No hay capturas"; break; }
+            echo "$f: $(sips -g pixelWidth -g pixelHeight "$f" | awk '/pixel/ {printf "%s ", $2}')"
+          done
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: capturas-ios
+          path: out/*.png
+          if-no-files-found: warn
+
+      # Solo si algo falla. En un repositorio público los artefactos los puede descargar cualquiera con sesión de GitHub:
+      # por eso la depuración (que puede incluir el código del demo) caduca a los 2 días y solo se sube ante un fallo.
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: depuracion
+          path: debug/
+          retention-days: 2
+          if-no-files-found: ignore

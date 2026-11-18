@@ -1,0 +1,31 @@
+# Capturas de la App Store de PadelPique (iPhone 6,9": 1320x2868), en ES y EN, en UNA sola sesión.
+#
+# Por qué un solo flujo: el grupo demo vive en la base de producción y cada sesión nueva tendría que
+# reclamar un invitado distinto. Aquí se reclama UNO solo (Carlos) y se reutiliza la misma sesión para las
+# dos pasadas de idioma (el idioma se cambia dentro de la app: Ajustes → Idioma).
+#
+# Requiere el build `simulator` de EAS (EXPO_PUBLIC_HIDE_ADS=1: sin anuncios y con la clasificación desbloqueada).
+# Resultado (en el directorio de trabajo de Maestro):
+#   es-06-reclamar-invitado   es-03-partidos   es-01-clasificacion   es-05-mejores-parejas   es-04-invitar
+#   es-02a-nuevo-partido-parejas   es-02-nuevo-partido   y las mismas "en-…" (salvo la 06).
+# Orden recomendado en App Store Connect: 01, 02, 03, 04, 05 (la 06 es opcional, sexta).
+appId: com.borjeta.padelpique
+---
+- launchApp:
+    clearState: true
+    stopApp: true
+- runFlow: sub/esperar-inicio.yaml
+- runFlow: sub/unirse-demo.yaml
+
+# --- Español (el simulador arranca en es_ES y la app sigue el idioma del sistema) ---
+- runFlow:
+    file: sub/pasada.yaml
+    env:
+      IDIOMA: es
+
+# --- Inglés (cambio de idioma dentro de la app) ---
+- runFlow: sub/idioma-en.yaml
+- runFlow:
+    file: sub/pasada.yaml
+    env:
+      IDIOMA: en

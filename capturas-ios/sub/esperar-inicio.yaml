@@ -1,0 +1,10 @@
+# Espera a la pantalla de inicio ("Mis grupos"): la app crea la sesión anónima y carga tus grupos.
+# El botón "Unirme con código" (join-group) está tanto con la lista vacía como en la cabecera de la lista.
+appId: com.borjeta.padelpique
+---
+- extendedWaitUntil:
+    visible:
+      id: "join-group"
+    timeout: 90000
+- runFlow: dialogos.yaml
+- runFlow: pausa.yaml
